@@ -1,0 +1,35 @@
+{
+    "name": "revo-web-dispatch",
+    "version": "1.0.0",
+    "description": "Routes and/or redirects web queries to port 80/443.",
+    "main": "app.js",
+    "type": "module",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "devel": "npx nodemon app.js --config=/etc/default/web-dispatch",
+        "server": "node app.js --config=/etc/default"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/revolution-robotics/roadrunner-web-dispatch.git"
+    },
+    "keywords": [
+        "web",
+        "router",
+        "dispatch"
+    ],
+    "author": "Andrew L. Moore",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/revolution-robotics/roadrunner-web-dispatch/issues"
+    },
+    "homepage": "https://github.com/revolution-robotics/roadrunner-web-dispatch#readme",
+    "dependencies": {
+        "fs": "0.0.1-security",
+        "ini": "^2.0.0",
+        "koa": "^2.13.1",
+        "koa-mount": "^4.0.0",
+        "koa-static": "^5.0.0",
+        "minimist": "^1.2.5"
+    }
+}

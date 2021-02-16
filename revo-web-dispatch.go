@@ -18,10 +18,17 @@ var (
 	//     --config=configPath
 	//     --configUpdateInterval=duration
 	//     --dumpflags
-	cgiFlag  = flag.String("cgi", "/usr/bin/status.py", "CGI path")
-	portFlag = flag.Int("port", 80, "Port to listen on")
-	uriFlag  = flag.String("uri", "/status.json", "URI of CGI trigger")
-	wwwFlag  = flag.String("www", "/var/www/html", "HTML directory")
+	cgiFlag	      = flag.String("cgi", "/usr/bin/status.py", "CGI path")
+	httpPortFlag  = flag.Int("httpPort", 80, "HTTP port to listen on")
+	httpsPortFlag = flag.Int("httpsPort", 443, "HTTPS port to listen on")
+	uriFlag	      = flag.String("uri", "/status.json", "URI of CGI trigger")
+	wwwFlag	      = flag.String("www", "/var/www/html", "HTML directory")
+	certFlag      = flag.String("cert",
+		"/etc/web-dispatch/certs/self-signed.crt",
+		"Public TLS certificate")
+	keyFlag	      = flag.String("key",
+		"/etc/web-dispatch/certs/self-signed.key",
+		"Private TLS Key")
 )
 
 func execHandler(w http.ResponseWriter, r *http.Request) {
@@ -38,7 +45,7 @@ func execHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func redirectHandler(w http.ResponseWriter, r *http.Request) {
+func cockpitHandler(w http.ResponseWriter, r *http.Request) {
 	newURI := "https://" + r.Host + ":9090"
 	fmt.Printf("Redirect: %s\n", newURI)
 	http.Redirect(w, r, newURI, http.StatusSeeOther)
@@ -47,11 +54,23 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	iniflags.Parse()
 
-	port := ":" + strconv.Itoa(*portFlag)
-	fmt.Printf("Listening on port %s\n", port)
+	httpPort := ":" + strconv.Itoa(*httpPortFlag)
+	httpsPort := ":" + strconv.Itoa(*httpsPortFlag)
+	fmt.Printf("Listening on ports %s and %s\n", httpPort, httpsPort)
 
 	http.Handle("/", http.FileServer(http.Dir(*wwwFlag)))
 	http.HandleFunc(*uriFlag, execHandler)
-	http.HandleFunc("/cockpit", redirectHandler)
-	http.ListenAndServe(port , nil)
+	http.HandleFunc("/cockpit", cockpitHandler)
+
+	go func() {
+		err := http.ListenAndServe(httpPort, nil)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+		}
+	}()
+
+	err := http.ListenAndServeTLS(httpsPort, *certFlag, *keyFlag, nil)
+	if  err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+	}
 }

@@ -51,6 +51,12 @@ func cockpitHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, newURI, http.StatusSeeOther)
 }
 
+func redirectHandler(w http.ResponseWriter, r *http.Request) {
+	newURI := "https://" + r.Host + r.RequestURI
+	fmt.Printf("Redirect: %s\n", newURI)
+	http.Redirect(w, r, newURI, http.StatusSeeOther)
+}
+
 func main() {
 	iniflags.Parse()
 
@@ -63,7 +69,8 @@ func main() {
 	http.HandleFunc("/cockpit", cockpitHandler)
 
 	go func() {
-		err := http.ListenAndServe(httpPort, nil)
+		err := http.ListenAndServe(httpPort,
+			http.HandlerFunc(redirectHandler))
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %s\n", err)
 		}

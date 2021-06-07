@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"github.com/alessio/shellescape"
 	"strconv"
+	"strings"
 )
 
 var (
@@ -46,7 +47,8 @@ func execHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func cockpitHandler(w http.ResponseWriter, r *http.Request) {
-	newURI := "https://" + r.Host + ":9090"
+	newURI := "https://" + r.Host + ":9090" +
+		strings.Replace(r.RequestURI, "/cockpit", "", 1)
 	fmt.Printf("Redirect: %s\n", newURI)
 	http.Redirect(w, r, newURI, http.StatusSeeOther)
 }
@@ -66,7 +68,7 @@ func main() {
 
 	http.Handle("/", http.FileServer(http.Dir(*wwwFlag)))
 	http.HandleFunc(*uriFlag, execHandler)
-	http.HandleFunc("/cockpit", cockpitHandler)
+	http.HandleFunc("/cockpit/", cockpitHandler)
 
 	go func() {
 		err := http.ListenAndServe(httpPort,
